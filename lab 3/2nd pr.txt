@@ -1,0 +1,56 @@
+.text
+setup:
+.globl setup
+call Nod_main
+finish:
+li a0, 10
+ecall
+
+.text
+Nod_main:
+.globl Nod_main
+la a5, arr # для передачи sub
+lw a4, arr_length # для передачи sub
+addi sp, sp, -16 #делаем для того чтобы не было зацикливания и сохраняем
+sw ra, 12(sp) # загружаем в память
+call NOD_sub
+lw ra, 12(sp) 
+addi sp, sp, 16 # возвращаем все обратно
+ret # return
+.rodata
+arr_length:
+.word 6
+.rodata
+arr:
+.word 133, 266, 152, 114, 228, 38
+#.word 108, 171, 45, 27, 792, 153
+
+.text
+NOD_sub:
+.globl NOD_sub
+addi a4, a4, -2 # уменьшили счетчик
+lw a3, 0(a5) # a3 = arr[0]
+addi a5, a5, 4 # указатель перешел к сл элем
+lw t1, 0(a5) # t1 = arr[1]
+
+loop_start:
+beq a3, t1, next # a3 == t1 -> next
+bgeu a3, t1, loop1 # a3 > t1 -> loop1
+bgeu t1, a3, loop2 # t1 > a3 -> loop2 
+
+loop1: #1ое > 2го
+sub a3, a3, t1
+jal zero, loop_start
+
+loop2: #2ое > 1го
+sub t1, t1, a3
+jal zero, loop_start 
+
+next: #нод найден
+addi a5, a5, 4 # указатель перешел к сл элем
+lw t1, 0(a5)
+addi a4, a4, -1
+bltz a4, loop_exit
+jal zero, loop_start
+loop_exit:
+ret
